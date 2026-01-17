@@ -1,5 +1,4 @@
 <?php
-// આ લાઈન અત્યારે કયું પેજ ખુલ્લું છે તેનું નામ પકડશે
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 
