@@ -4,21 +4,15 @@ include "db.php";
 $success = "";
 $error = "";
 
-// પેશન્ટનો ડેટા લાવીએ છીએ
 $pat_result = mysqli_query($conn, "SELECT ID, Name, mobile, age, address, aadhaar_no FROM patients ORDER BY Name ASC");
 
 if (isset($_POST['add_visit'])) {
     $patient_id = mysqli_real_escape_string($conn, $_POST['patient_id']);
     
-    // --- TIME FIX START ---
-    // ફોર્મમાંથી આવેલી તારીખ લો
     $raw_date = $_POST['visit_date'];
     
-    // તેની સાથે અત્યારનો સમય (Current Time) જોડી દો
-    // જેથી 12:00 AM ના બદલે સાચો સમય (દા.ત. 10:30 AM) સેવ થાય
     $current_time = date("H:i:s"); 
     $visit_date = $raw_date . " " . $current_time;
-    // --- TIME FIX END ---
 
     $problem    = mysqli_real_escape_string($conn, $_POST['problem']);
     $medicine   = mysqli_real_escape_string($conn, $_POST['medicine']);
@@ -47,7 +41,6 @@ if (isset($_POST['add_visit'])) {
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
     <style>
-        /* થોડું એક્સ્ટ્રા CSS અહીં જ મૂકું છું જેથી style.css માં ભૂલ હોય તો પણ વાંધો ન આવે */
         .select2-container .select2-selection--single {
             height: 50px !important;
             padding: 10px;
