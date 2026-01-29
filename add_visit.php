@@ -4,13 +4,13 @@ include "db.php";
 $success = "";
 $error = "";
 
-$pat_result = mysqli_query($conn, "SELECT ID, Name, mobile, age, address, aadhaar_no FROM patients ORDER BY Name ASC");
+$sql = "SELECT ID, Name, mobile, age, address, aadhaar_no, ration_no, voter_id, pan_card FROM patients ORDER BY Name ASC";
+$pat_result = mysqli_query($conn, $sql);
 
 if (isset($_POST['add_visit'])) {
     $patient_id = mysqli_real_escape_string($conn, $_POST['patient_id']);
     
     $raw_date = $_POST['visit_date'];
-    
     $current_time = date("H:i:s"); 
     $visit_date = $raw_date . " " . $current_time;
 
@@ -35,31 +35,23 @@ if (isset($_POST['add_visit'])) {
 <html>
 <head>
     <title>Add Visit</title>
-    
     <link rel="stylesheet" href="style.css">
-    
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
     <style>
-        .select2-container .select2-selection--single {
-            height: 50px !important;
-            padding: 10px;
-            border: 1px solid #ddd !important;
-            border-radius: 8px !important;
-            display: flex;
-            align-items: center;
+        .id-badge {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 5px;
+            display: inline-block;
+            margin-top: 4px;
+            border: 1px solid #ddd;
         }
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 48px !important;
-            right: 10px !important;
-        }
-        
-        /* Dropdown Item Design */
-        .p-option { padding: 5px; border-bottom: 1px solid #f0f0f0; }
-        .p-top { display: flex; justify-content: space-between; font-size: 16px; color: #2c3e50; font-weight: 600; }
-        .p-mobile { color: #2980b9; }
-        .p-bottom { font-size: 13px; color: #7f8c8d; margin-top: 2px; }
-        .p-proof { font-size: 11px; background: #eee; padding: 2px 6px; border-radius: 4px; margin-top: 4px; display: inline-block; }
+        .bg-aadhar { background: #fff3cd; color: #856404; border-color: #ffeeba; } 
+        .bg-pan    { background: #d4edda; color: #155724; border-color: #c3e6cb; } 
+        .bg-voter  { background: #f8d7da; color: #721c24; border-color: #f5c6cb; } 
+        .bg-ration { background: #e2e3e5; color: #383d41; border-color: #d6d8db; } 
     </style>
 </head>
 <body>
@@ -73,27 +65,33 @@ if (isset($_POST['add_visit'])) {
 
             <h2>👨‍⚕️ Add New Visit</h2>
 
-            <?php if($success) echo "<div style='background:#d4edda; color:#155724; padding:10px; border-radius:5px; margin-bottom:15px;'>$success</div>"; ?>
-            <?php if($error) echo "<div style='background:#f8d7da; color:#721c24; padding:10px; border-radius:5px; margin-bottom:15px;'>$error</div>"; ?>
+            <?php if($success) echo "<div style='background:#d4edda; color:#155724; padding:10px; margin-bottom:15px; border-radius:5px;'>$success</div>"; ?>
+            <?php if($error) echo "<div style='background:#f8d7da; color:#721c24; padding:10px; margin-bottom:15px; border-radius:5px;'>$error</div>"; ?>
 
             <form method="POST">
 
-                <label>🔍 Select Patient (Search Name / Mobile)</label>
+                <label>🔍 Select Patient (Search by Name, Mobile, Aadhar, PAN, Voter ID...)</label>
                 
                 <select name="patient_id" id="patient_select" required style="width: 100%;">
-                    <option value="">Search Patient...</option>
+                    <option value="">Type to search...</option>
                     <?php 
                     while($p = mysqli_fetch_assoc($pat_result)): 
-                        $proof = "";
-                        if(!empty($p['aadhaar_no'])) { $proof .= "Aadhar: " . $p['aadhaar_no']; }
+                        $mob = !empty($p['mobile']) ? $p['mobile'] : "No Mobile";
                     ?>
                         <option value="<?= $p['ID']; ?>" 
                                 data-name="<?= $p['Name']; ?>"
-                                data-mobile="<?= $p['mobile']; ?>"
+                                data-mobile="<?= $mob; ?>"
                                 data-age="<?= $p['age']; ?>"
                                 data-address="<?= $p['address']; ?>"
-                                data-proof="<?= $proof; ?>">
-                            <?= $p['Name']; ?> - <?= $p['mobile']; ?>
+                                data-aadhar="<?= $p['aadhaar_no']; ?>"
+                                data-ration="<?= $p['ration_no']; ?>"
+                                data-voter="<?= $p['voter_id']; ?>"
+                                data-pan="<?= $p['pan_card']; ?>">
+                            
+                            <?= $p['Name']; ?> | <?= $mob; ?> | 
+                            <?= $p['aadhaar_no']; ?> | <?= $p['ration_no']; ?> | 
+                            <?= $p['voter_id']; ?> | <?= $p['pan_card']; ?>
+                        
                         </option>
                     <?php endwhile; ?>
                 </select>
@@ -128,27 +126,34 @@ if (isset($_POST['add_visit'])) {
 <script>
     $(document).ready(function() {
         
-        // Custom Design Function
+        // Custom Design Function 
         function formatPatient (patient) {
             if (!patient.id) { return patient.text; }
             
-            var name = $(patient.element).data('name');
-            var mobile = $(patient.element).data('mobile');
-            var age = $(patient.element).data('age');
-            var address = $(patient.element).data('address');
-            var proof = $(patient.element).data('proof');
+            var el = $(patient.element);
+            var name = el.data('name');
+            var mobile = el.data('mobile');
+            var age = el.data('age');
+            var address = el.data('address');
+
+            // ID Proofs Check logic
+            var badges = "";
+            if(el.data('aadhar')) badges += '<span class="id-badge bg-aadhar">Aadhar: '+el.data('aadhar')+'</span> ';
+            if(el.data('pan'))    badges += '<span class="id-badge bg-pan">PAN: '+el.data('pan')+'</span> ';
+            if(el.data('voter'))  badges += '<span class="id-badge bg-voter">Voter: '+el.data('voter')+'</span> ';
+            if(el.data('ration')) badges += '<span class="id-badge bg-ration">Ration: '+el.data('ration')+'</span> ';
 
             var $design = $(
                 '<div class="p-option">' +
                     '<div class="p-top">' +
-                        '<span>👤 ' + name + '</span>' +
-                        '<span class="p-mobile">📱 ' + mobile + '</span>' +
+                        '<span> Name : ' + name + '</span>  |  ' +
+                        '<span class="p-mobile"> 📞 : ' + mobile + '</span>' +
                     '</div>' +
                     '<div class="p-bottom">' +
-                        '<span>🎂 ' + age + ' Years</span> | ' +
-                        '<span>🏠 ' + address + '</span>' +
+                        '<span> Age : ' + age + '</span>  |  ' +
+                        '<span> Address : ' + (address ? address : 'Unknown') + '</span>' +
                     '</div>' +
-                    (proof ? '<div class="p-proof">🆔 ' + proof + '</div>' : '') +
+                    (badges ? '<div>' + badges + '</div>' : '') + 
                 '</div>'
             );
             return $design;
@@ -161,9 +166,8 @@ if (isset($_POST['add_visit'])) {
             return name + " (" + mobile + ")";
         }
 
-        // Initialize Select2
         $('#patient_select').select2({
-            placeholder: "Type Name or Mobile to Search...",
+            placeholder: "Search by Name, Mobile, Aadhar, PAN, Voter ID...",
             allowClear: true,
             templateResult: formatPatient,
             templateSelection: formatPatientSelection

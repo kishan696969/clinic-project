@@ -54,8 +54,8 @@
                 <label>Full Name *</label>
                 <input type="text" name="name" required placeholder="Enter full name">
 
-                <label>Mobile Number *</label>
-                <input type="text" name="mobile" required placeholder="10 digit mobile">
+                <label>Mobile Number</label>
+                <input type="text" name="mobile" placeholder="1234567890">
 
                 <label>Age *</label>
                 <input type="number" name="age" required>

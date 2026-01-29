@@ -33,7 +33,7 @@
                     <h2><?= $q_today['c'] ?></h2>
                     <p>Today's Patients</p>
                 </div>
-                </div>
+            </div>
 
             <h3 style="margin-top:30px; color:#34495e;">📋 Patient Log (Last 50 Visits)</h3>
             
@@ -42,13 +42,13 @@
                     <th>Date</th>
                     <th>Patient Name</th>
                     <th>Mobile</th>
-                    <th>Problem</th>
+                    <th>Address</th> <th>Problem</th>
                     <th>Medicine</th>
                 </tr>
 
                 <?php
-                // List last 50 visits
-                $sql = "SELECT v.visit_date, v.problem, v.medicine, p.Name, p.mobile 
+                // Query ma p.address add karyu che
+                $sql = "SELECT v.visit_date, v.problem, v.medicine, p.Name, p.mobile, p.address 
                         FROM visits v 
                         JOIN patients p ON v.patient_id = p.ID 
                         ORDER BY v.visit_date DESC LIMIT 50";
@@ -58,16 +58,17 @@
                 if(mysqli_num_rows($result) > 0){
                     while($row = mysqli_fetch_assoc($result)){
                         $d = date("d/m/Y h:i A", strtotime($row['visit_date']));
+                        $addr = !empty($row['address']) ? $row['address'] : "-";
                         echo "<tr>
                                 <td>$d</td>
                                 <td style='font-weight:bold;'>{$row['Name']}</td>
                                 <td>{$row['mobile']}</td>
-                                <td>{$row['problem']}</td>
+                                <td>$addr</td> <td>{$row['problem']}</td>
                                 <td>{$row['medicine']}</td>
                               </tr>";
                     }
                 } else {
-                    echo "<tr><td colspan='5' style='text-align:center;'>No visits found yet.</td></tr>";
+                    echo "<tr><td colspan='6' style='text-align:center;'>No visits found yet.</td></tr>";
                 }
                 ?>
             </table>
